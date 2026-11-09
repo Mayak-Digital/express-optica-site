@@ -1,0 +1,1030 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Квитанции Экспресс Оптики</title>
+<link rel="manifest" href="app.webmanifest">
+<meta name="theme-color" content="#0f6b72">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+/* Layout: слева бланк заказа, справа живая квитанция как на бумаге; ниже — журнал заказов */
+:root{
+  --bg:#f3f5f6; --panel:#ffffff; --ink:#1b2328; --muted:#5d6b73; --line:#d6dde1;
+  --accent:#0f6b72; --accent-ink:#ffffff; --accent-soft:#e2f0f0;
+  --warn:#a5560a; --warn-soft:#fbeedd; --ok:#2c7a3f; --ok-soft:#e3f2e6; --err:#b3261e;
+  --field:#ffffff; --paper:#ffffff; --paper-ink:#111111;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121719; --panel:#1a2124; --ink:#e4eaec; --muted:#9aa8ae; --line:#2e393d;
+  --accent:#4fb3ba; --accent-ink:#0c1416; --accent-soft:#183133;
+  --warn:#f0a75a; --warn-soft:#3a2a16; --ok:#7fcf8f; --ok-soft:#1b3121; --err:#ff8a80;
+  --field:#11171a; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#121719; --panel:#1a2124; --ink:#e4eaec; --muted:#9aa8ae; --line:#2e393d;
+  --accent:#4fb3ba; --accent-ink:#0c1416; --accent-soft:#183133;
+  --warn:#f0a75a; --warn-soft:#3a2a16; --ok:#7fcf8f; --ok-soft:#1b3121; --err:#ff8a80;
+  --field:#11171a; color-scheme:dark;}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:14px;line-height:1.4}
+.wrap{max-width:1500px;margin:0 auto;padding-inline:16px;padding-block:16px 40px;display:grid;gap:16px}
+header.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px}
+header.top h1{font-size:20px;margin:0;font-weight:700;letter-spacing:-.01em}
+header.top .sub{color:var(--muted);font-size:13px}
+.status{margin-left:auto;font-size:13px;color:var(--muted)}
+.status.err{color:var(--err)}
+.who{font-size:13px;color:var(--muted);display:flex;gap:10px;align-items:center}
+.who a{color:var(--accent)}
+.status.off{color:var(--warn)}
+.install[hidden]{display:none}
+.notice{background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:10px 14px;font-size:14px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.notice[hidden]{display:none}
+.notice ul{margin:0;padding-left:18px}
+.notice button{margin-left:auto}
+
+.main{display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.panel h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px;font-weight:600}
+.form-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.form-head .no{font-size:22px;font-weight:700;display:flex;align-items:center;gap:6px;color:var(--ink)}
+.form-head .no input{font:inherit;font-size:22px;font-weight:700;width:5.2em;padding:2px 8px;font-variant-numeric:tabular-nums;border-color:var(--line);background:var(--field)}
+.form-head .no-hint{font-size:12px;color:var(--muted);flex-basis:100%}
+.form-head .mode{font-size:12px;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:600}
+fieldset{border:0;margin:0;padding:12px 0 0;border-top:1px solid var(--line);margin-top:12px;display:grid;gap:8px}
+legend{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700;padding:0 0 6px}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.f{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted);flex:1 1 120px;min-width:0}
+.f.s{flex:0 1 90px}.f.l{flex:2 1 240px}
+input,select{font:inherit;font-size:14px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:7px 8px;width:100%;min-width:0}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.rx{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.rx th{font-size:12px;font-weight:500;color:var(--muted);text-align:left;padding:0 4px 3px}
+.rx td{padding:2px 3px}
+.rx select{min-width:84px;padding-inline:4px}
+.rx input{width:62px}
+.rx td.eye{font-weight:600;white-space:nowrap;font-size:13px;padding-right:8px}
+.hint{font-size:12px;color:var(--muted)}
+.found[hidden]{display:none}
+.found{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:var(--ok-soft);color:var(--ok);border-radius:6px;padding:7px 10px;font-size:13px}
+.totals{display:flex;flex-wrap:wrap;gap:6px 18px;font-variant-numeric:tabular-nums;font-size:14px;padding-top:4px}
+.totals b{font-size:16px}
+.totals .debt b{color:var(--warn)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+button{font:inherit;font-size:14px;border-radius:7px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:9px 14px;cursor:pointer;font-weight:500}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+button.big{font-size:15px;padding:11px 18px}
+button:disabled{opacity:.5;cursor:default}
+.msg{font-size:13px;min-height:1.2em;margin-top:8px}
+.msg.ok{color:var(--ok)}.msg.err{color:var(--err)}
+
+/* предпросмотр квитанции — всегда как белая бумага */
+.preview-wrap{overflow-x:auto;padding:4px 0}
+.paper{background:var(--paper);color:var(--paper-ink);width:1060px;max-width:none;padding:22px 26px;box-shadow:0 1px 2px rgba(0,0,0,.12),0 6px 24px rgba(0,0,0,.08);border-radius:2px;transform-origin:top left}
+.preview-note{font-size:12px;color:var(--muted);margin-top:6px}
+
+/* журнал */
+.list-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.list-tools input{flex:1 1 220px;max-width:360px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:13px;padding:6px 10px;border-radius:99px}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.table-wrap{overflow-x:auto}
+table.orders{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:13px}
+table.orders th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.orders td{padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.orders tr{cursor:pointer}
+table.orders tbody tr:hover td{background:var(--accent-soft)}
+td.num{text-align:right}
+.pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;font-weight:600}
+.pill.work{background:var(--accent-soft);color:var(--accent)}
+.pill.ready{background:var(--warn-soft);color:var(--warn)}
+.pill.done{background:var(--ok-soft);color:var(--ok)}
+.empty{padding:22px 8px;color:var(--muted);text-align:center}
+details.lenses summary{cursor:pointer;font-weight:600}
+.lens-grid{max-width:900px;display:grid;grid-template-columns:minmax(0,1fr) repeat(3,92px) 84px;gap:6px 8px;align-items:center;margin-top:10px}
+.lens-grid input{padding:6px 7px}
+.surch{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:var(--warn-soft);color:var(--warn);border-radius:6px;padding:7px 10px;font-size:13px}
+.surch[hidden]{display:none}
+.lens-grid .h{font-size:12px;color:var(--muted)}
+@media (max-width:700px){.lens-grid{grid-template-columns:minmax(0,1fr) repeat(3,72px)}.lens-grid .c3{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.login[hidden]{display:none}
+.login form{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px;width:100%;max-width:380px;display:grid;gap:12px}
+.login h1{font-size:20px;margin:0}
+.login p{margin:0;color:var(--muted);font-size:13px}
+.login .msg{margin:0}
+.linklike{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;cursor:pointer;font-size:13px;justify-self:start}
+button.danger{color:var(--err);border-color:var(--err)}
+.staff-tbl{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+.staff-tbl td,.staff-tbl th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+.staff-tbl th{color:var(--muted);font-weight:600;font-size:12px}
+details.staff summary{cursor:pointer;font-weight:600}
+</style>
+</head>
+<body>
+<div class="login" id="login" hidden>
+  <form id="loginForm" autocomplete="on">
+    <h1>Экспресс Оптика · CRM</h1>
+    <p id="loginHint">Войдите своей почтой и паролем.</p>
+    <label class="f">Почта<input id="lgEmail" type="email" autocomplete="username" required></label>
+    <label class="f" id="lgPassWrap">Пароль<input id="lgPass" type="password" autocomplete="current-password"></label>
+    <button type="submit" class="primary big" id="lgBtn">Войти</button>
+    <button type="button" class="linklike" id="lgForgot">Забыли пароль?</button>
+    <div class="msg" id="lgMsg"></div>
+  </form>
+</div>
+<div class="wrap">
+  <header class="top">
+    <h1>Экспресс Оптика · квитанции</h1>
+    <span class="sub">ТЦ «Триумфальный», ул. Вавилова 66</span>
+    <span class="status" id="dbStatus">Загружаю заказы…</span>
+    <button type="button" class="install" id="installBtn" hidden>Установить как программу</button>
+    <span class="who"><span id="whoName"></span><a id="logoutLink" href="#">Выйти</a></span>
+  </header>
+  <div class="notice" id="notice" hidden><ul id="noticeList"></ul><button type="button" id="noticeClose">Понятно</button></div>
+
+  <div class="main">
+    <!-- ФОРМА -->
+    <form class="panel" id="f" autocomplete="off">
+      <div class="form-head">
+        <label class="no" for="numInput">Квитанция №<input id="numInput" type="number" min="1" step="1" inputmode="numeric" title="Номер ставится сам. Можно вписать свой — следующие пойдут дальше от него."></label>
+        <span class="mode" id="modeLabel">Новый заказ</span>
+        <span class="no-hint" id="noHint">Номер ставится сам. Можно вписать свой — следующие заказы пойдут дальше от него.</span>
+      </div>
+      <div class="row">
+        <label class="f">Дата заказа<input type="date" id="orderDate"></label>
+        <label class="f">Дата получения<input type="date" id="readyDate"></label>
+        <label class="f s">Время<input type="time" id="readyTime"></label>
+        <label class="f s">№ карты<input id="card"></label>
+      </div>
+
+      <fieldset><legend>Клиент</legend>
+        <div class="row">
+          <label class="f">Телефон<input id="phone" inputmode="tel" placeholder="8 916 000-00-00"></label>
+          <label class="f l">Ф.И.О. заказчика<input id="name"></label>
+        </div>
+        <div class="found" id="found" hidden></div>
+      </fieldset>
+
+      <fieldset><legend>Рецепт</legend>
+        <table class="rx">
+          <thead><tr><th></th><th>Сфера</th><th>Цилиндр</th><th>Ось</th><th>Add</th><th>РЦ PD</th></tr></thead>
+          <tbody>
+            <tr><td class="eye">OD правый</td>
+              <td><select id="odSph" data-r="-20,20"></select></td><td><select id="odCyl" data-r="-6,6"></select></td>
+              <td><input id="odAx" type="number" min="0" max="180" inputmode="numeric"></td>
+              <td><select id="odAdd" data-r="0.75,4"></select></td><td><input id="odPd" type="number" step="0.5" inputmode="decimal"></td></tr>
+            <tr><td class="eye">OS левый</td>
+              <td><select id="osSph" data-r="-20,20"></select></td><td><select id="osCyl" data-r="-6,6"></select></td>
+              <td><input id="osAx" type="number" min="0" max="180" inputmode="numeric"></td>
+              <td><select id="osAdd" data-r="0.75,4"></select></td><td><input id="osPd" type="number" step="0.5" inputmode="decimal"></td></tr>
+          </tbody>
+        </table>
+        <div class="row">
+          <label class="f">Назначение очков<select id="purpose"></select></label>
+          <label class="f">Рецепт<select id="source"></select></label>
+        </div>
+      </fieldset>
+
+      <fieldset><legend>Оправа и линзы</legend>
+        <div class="row">
+          <label class="f">Оправа<input id="frameBrand"></label>
+          <label class="f">Модель<input id="frameModel"></label>
+          <label class="f s">Цена, ₽<input id="framePrice" type="number" min="0" step="10" inputmode="numeric"></label>
+        </div>
+        <div class="row">
+          <label class="f s">Производитель<select id="maker"></select></label>
+          <label class="f l">Линзы<select id="lens"></select></label>
+          <label class="f s">Цена, ₽<input id="lensPrice" type="number" min="0" step="10" inputmode="numeric"></label>
+        </div>
+        <div class="surch" id="surch" hidden></div>
+        <div class="row">
+          <label class="f">Работа мастера<input id="work"></label>
+          <label class="f s">Цена, ₽<input id="workPrice" type="number" min="0" step="10" inputmode="numeric"></label>
+        </div>
+        <div class="row">
+          <label class="f">Тонировка цвет<select id="tint"></select></label>
+          <label class="f s">Процент<input id="tintPct" type="number" min="0" max="100" step="5" inputmode="numeric"></label>
+          <label class="f s">Цена, ₽<input id="tintPrice" type="number" min="0" step="10" inputmode="numeric"></label>
+        </div>
+      </fieldset>
+
+      <fieldset><legend>Оплата</legend>
+        <div class="row">
+          <label class="f s">Скидка, ₽<input id="discount" type="number" min="0" step="10" inputmode="numeric"></label>
+          <label class="f s">Оплачено, ₽<input id="paid" type="number" min="0" step="10" inputmode="numeric"></label>
+          <label class="f">Статус<select id="status"><option>В работе</option><option>Готов</option><option>Выдан</option></select></label>
+        </div>
+        <div class="totals">
+          <span>Сумма <b id="tSum">0 ₽</b></span>
+          <span>Итого <b id="tTotal">0 ₽</b></span>
+          <span class="debt">Долг <b id="tDebt">0 ₽</b></span>
+        </div>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit" class="primary big" id="saveBtn">Сохранить и распечатать</button>
+        <button type="button" id="saveOnlyBtn">Только сохранить</button>
+        <button type="button" id="newBtn">Новый заказ</button>
+        <button type="button" class="danger" id="delBtn" hidden>Удалить заказ</button>
+      </div>
+      <div class="msg" id="msg"></div>
+    </form>
+
+    <!-- КВИТАНЦИЯ -->
+    <section class="panel">
+      <h2>Квитанция для печати</h2>
+      <div class="preview-wrap" id="previewWrap"><div class="paper" id="paper"></div></div>
+      <p class="preview-note">Печать: A4, альбомная ориентация. Две копии — салону и клиенту. Если в окне печати видны адрес страницы и дата — выключите «Колонтитулы».</p>
+    </section>
+  </div>
+
+  <!-- ЖУРНАЛ -->
+  <section class="panel">
+    <h2>Заказы</h2>
+    <div class="list-tools">
+      <input id="q" type="search" placeholder="Поиск: телефон, фамилия или № квитанции">
+      <div class="chips" role="group" aria-label="Фильтр">
+        <button type="button" class="chip" data-flt="all" aria-pressed="true">Все</button>
+        <button type="button" class="chip" data-flt="open" aria-pressed="false">Не выданы</button>
+        <button type="button" class="chip" data-flt="debt" aria-pressed="false">С долгом</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="orders">
+        <thead><tr><th>№</th><th>Дата</th><th>Клиент</th><th>Телефон</th><th>Линзы</th><th class="num">Итого</th><th class="num">Долг</th><th>Статус</th></tr></thead>
+        <tbody id="rows"><tr><td colspan="8" class="empty">Заказы появятся здесь после первого сохранения.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" id="lensPanel" hidden>
+    <details class="lenses" id="lensDetails">
+      <summary>Справочник линз и цены</summary>
+      <p class="hint">Цены за пару линз, по прайсу. В заказе выберите производителя и линзу — цена подставится сама, её всегда можно поправить вручную.</p>
+      <div class="lens-grid" id="lensGrid"></div>
+      <div class="actions"><button type="button" id="addLens">Добавить линзу</button><button type="button" class="primary" id="saveLenses">Сохранить справочник</button></div>
+      <div class="msg" id="lensMsg"></div>
+    </details>
+  </section>
+
+  <section class="panel" id="staffPanel" hidden>
+    <details class="staff" id="staffDetails">
+      <summary>Сотрудники и доступ</summary>
+      <p class="hint">Как добавить сотрудника: 1) в Supabase откройте <b>Authentication → Users → Add user → Create new user</b>, впишите почту и пароль, отметьте «Auto Confirm User»; 2) здесь впишите ту же почту и нажмите «Дать доступ». Сотрудник входит на этой странице своей почтой и паролем.</p>
+      <table class="staff-tbl"><thead><tr><th>Почта</th><th>Имя</th><th>Роль</th><th></th></tr></thead><tbody id="staffRows"><tr><td colspan="4" class="empty">Загружаю…</td></tr></tbody></table>
+      <div class="row">
+        <label class="f">Почта<input id="stEmail" type="email" autocomplete="off"></label>
+        <label class="f">Имя<input id="stName" autocomplete="off"></label>
+        <label class="f s">Роль<select id="stRole"><option value="staff">Сотрудник</option><option value="admin">Администратор</option></select></label>
+      </div>
+      <div class="actions"><button type="button" class="primary" id="stAdd">Дать доступ</button></div>
+      <div class="msg" id="stMsg"></div>
+    </details>
+  </section>
+</div>
+
+<script src="supabase.js"></script>
+<script>
+  // Адрес базы и публичный ключ Supabase (публичный ключ можно показывать: доступ к данным закрыт правилами базы).
+  window.EOCRM = { url: 'https://azmkqjnwcvhihhfsgnxo.supabase.co', key: 'sb_publishable_FA9SQ7bTQfXh4O0Bwsjq6w_uGwz2nPe' };
+</script>
+<script>
+(() => {
+  const SHOP = { tel: '+7(926) 429 44 96', addr: 'ТЦ "Триумфальный"  ул. Вавилова 66' };
+  const DEFAULT_LISTS = {
+    lenses: [{"name": "1.5 Линзы без покрытия CR-39", "prices": {"Корея": 2300, "Италия": 2900, "Франция": 3400}}, {"name": "1.5 С упрочняющим покрытием (HC)", "prices": {"Корея": 2900, "Италия": 3900, "Франция": 3900}}, {"name": "1.56 С мультипокрытием (Антиблик) (HMC)", "prices": {"Корея": 3900, "Италия": 4900, "Франция": 5900}}, {"name": "1.56 Компьютерные линзы (HMC/EMI)", "prices": {"Корея": 5400, "Италия": 9900, "Франция": 11900}}, {"name": "1.6 Компьютерные линзы (HMC/EMI) тонкая", "prices": {"Корея": 8900, "Италия": 14900, "Франция": 18900}}, {"name": "1.67 Компьютерные линзы (HMC/EMI) очень тонкая", "prices": {"Корея": 15500, "Италия": 22900, "Франция": 33400}}, {"name": "1.61 AS (HMC) Асферическая тонкая линза", "prices": {"Корея": 7900, "Италия": 12900, "Франция": 15400}}, {"name": "1.67 AS (HMC) Асферическая очень тонкая линза", "prices": {"Корея": 13900, "Италия": 19900, "Франция": 22600}}, {"name": "1.74 AS (HMC) Асферическая сверхтонкая линза", "prices": {"Корея": 22900, "Италия": 28900, "Франция": 32900}}, {"name": "1.56 Фотохромные линзы (серый и коричневый) HMC", "prices": {"Корея": 8900, "Италия": 11900, "Франция": 13900}}, {"name": "1.61 Фотохромные линзы (серый и коричневый) HMC", "prices": {"Корея": 15400, "Италия": 22900, "Франция": 35400}}, {"name": "1.67 Фотохромные линзы (серый и коричневый) HMC", "prices": {"Корея": 24500, "Италия": 33000, "Франция": 48900}}, {"name": "1.74 Фотохромные линзы (серый и коричневый) HMC", "prices": {"Корея": 30000, "Италия": 45000, "Франция": 59900}}, {"name": "1.61 Фотохромные Blue Blocker (серый и коричневый)", "prices": {"Корея": 18000, "Италия": 29000, "Франция": 39000}}, {"name": "1.56 Антифог (Antifog) антизапотевающие", "prices": {"Корея": 9000, "Италия": 15000, "Франция": 19000}}, {"name": "1.6 Антифог (Antifog) антизапотевающие - до 6", "prices": {"Корея": 13000, "Италия": 22000, "Франция": 29000}}, {"name": "1.5 Бифокальные линзы (HC)", "prices": {"Корея": 7900, "Италия": 13900, "Франция": 18400}}, {"name": "1.56 Бифокальные линзы (Антиблик) (HMC)", "prices": {"Корея": 9900, "Италия": 14900, "Франция": 19900}}, {"name": "1.56 Бифокальные фотохромные линзы HMC", "prices": {"Корея": 21600, "Италия": 35000, "Франция": 39900}}, {"name": "1.5 Поляризационные линзы (HC)", "prices": {"Корея": 6900, "Италия": 12200, "Франция": 16000}}, {"name": "1.5 Поляризационные линзы (Антиблик) (HMC)", "prices": {"Корея": 8900, "Италия": 14200, "Франция": 18900}}, {"name": "1.56 Поляризационные фотохромные линзы 0 до -4.0", "prices": {"Корея": 15500, "Италия": 19800, "Франция": 25000}}, {"name": "1.59 Поликарбонат (сверхпрочные линзы) (HMC)", "prices": {"Корея": 9900, "Италия": 15900, "Франция": 18900}}, {"name": "1.59 Прогрессивные линзы Поликарбонат", "prices": {"Корея": 60000, "Италия": 80000, "Франция": 98900}}, {"name": "1.5 Прогрессивные линзы (HC)", "prices": {"Корея": 30000, "Италия": 40000, "Франция": 50000}}, {"name": "1.5 Прогрессивные линзы с мультипокрытием", "prices": {"Корея": 35000, "Италия": 45000, "Франция": 55000}}, {"name": "1.6 Прогрессивные линзы с мультипокрытием", "prices": {"Корея": 50000, "Италия": 60000, "Франция": 70000}}, {"name": "1.5 Прогрессивные фотохромные линзы с HMC/EMI", "prices": {"Корея": 55000, "Италия": 70000, "Франция": 90000}}, {"name": "1.6 Прогрессивные фотохромные линзы с HMC/EMI", "prices": {"Корея": 65000, "Италия": 85000, "Франция": 110000}}, {"name": "1.67 Прогрессивные фотохромные линзы с HMC/EMI", "prices": {"Корея": 80000, "Италия": 100000, "Франция": 120000}}, {"name": "1.5 Офисные линзы с мультипокрытием (HMC)", "prices": {"Корея": 12500, "Италия": 18900, "Франция": 22900}}, {"name": "1.56 Линзы с мультипокрытием с тонировкой (15%)", "prices": {"Корея": 7900, "Италия": 11900, "Франция": 14900}}, {"name": "1.5 Окрашенные линзы (Тонировка)", "prices": {"Корея": 6900, "Италия": 9900, "Франция": 13400}}, {"name": "1.5 Стекло без покрытия", "prices": {"Корея": 5500, "Италия": 8500, "Франция": 9900}}, {"name": "1.5 Стекло с мультипокрытием (HMC)", "prices": {"Корея": 6500, "Италия": 9900, "Франция": 12900}}, {"name": "1.7 Стекло с мультипокрытием (HMC)", "prices": {"Корея": 9500, "Италия": 14500, "Франция": 16000}}],
+    makers:['Корея','Италия','Франция'],
+    purposes:['Для дали','Для близи','Для постоянного ношения','Для работы за ПК'],
+    sources:['Рецепт салона','Рецепт заказчика','По старым очкам','Со слов заказчика'],
+    tints:['Серый','Коричневый']
+  };
+  const FIELDS = ['orderDate','readyDate','readyTime','card','phone','name','odSph','odCyl','odAx','odAdd','odPd','osSph','osCyl','osAx','osAdd','osPd',
+    'purpose','source','frameBrand','frameModel','framePrice','maker','lens','lensPrice','work','workPrice','tint','tintPct','tintPrice','discount','paid','status'];
+  const NUMS = new Set(['odSph','odCyl','odAx','odAdd','odPd','osSph','osCyl','osAx','osAdd','osPd','framePrice','lensPrice','workPrice','tintPct','tintPrice','discount','paid']);
+
+  const $ = id => document.getElementById(id);
+  const F = $('f');
+  const CFG = window.EOCRM || null;
+  let online = false;
+  let orders = [];            // из базы, по убыванию №
+  let lists = structuredClone(DEFAULT_LISTS);
+  let editingNum = null;      // № открытого заказа или null для нового
+  let numTouched = false;     // номер вписан вручную
+  let lastFound = null;
+  let filter = 'all';
+
+  /* ---------- форматирование ---------- */
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const n = v => { const x = Number(String(v ?? '').replace(',', '.')); return isFinite(x) ? x : 0; };
+  const has = v => v !== '' && v != null;
+  const rub = v => Math.round(n(v)).toLocaleString('ru-RU') + ' ₽';
+  const rubOrBlank = v => has(v) ? rub(v) : '';
+  const diop = v => { if (!has(v)) return ''; const x = n(v); return x === 0 ? '0.00' : (x > 0 ? '+' : '') + x.toFixed(2); };
+  const dmy = s => { if (!s) return ''; const [y,m,d] = s.split('-'); return d + '.' + m + '.' + y; };
+  const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
+  const normPhone = p => {
+    let s = String(p || '').replace(/\D/g, '');
+    if (!s) return '';
+    if (s.length === 11 && (s[0] === '8' || s[0] === '7')) s = s.slice(1);
+    if (s.length === 10) return '+7 ' + s.slice(0,3) + ' ' + s.slice(3,6) + '-' + s.slice(6,8) + '-' + s.slice(8);
+    return '+' + s;
+  };
+  const calc = o => {
+    const sum = n(o.framePrice) + n(o.lensPrice) + n(o.workPrice) + n(o.tintPrice);
+    const total = sum - n(o.discount);
+    return { sum, total, debt: total - n(o.paid) };
+  };
+
+  /* ---------- выпадающие списки ---------- */
+  document.querySelectorAll('select[data-r]').forEach(s => {
+    const [lo, hi] = s.dataset.r.split(',').map(Number);
+    s.add(new Option('—', ''));
+    for (let v = lo; v <= hi + 1e-9; v += (Math.abs(v) >= 15 - 1e-9 && Math.abs(v + 0.5) >= 15 - 1e-9 ? 0.5 : 0.25)) {
+      const x = Math.round(v * 100) / 100;
+      s.add(new Option(diop(x), String(x)));
+    }
+  });
+  function fillSelect(sel, arr, keep) {
+    const cur = keep ?? sel.value;
+    sel.innerHTML = ''; sel.add(new Option('—', ''));
+    arr.forEach(x => sel.add(new Option(x, x)));
+    if (cur && !arr.includes(cur)) sel.add(new Option(cur, cur));
+    sel.value = cur || '';
+  }
+  const lensPriceFor = (l, maker) => {
+    if (!l) return '';
+    if (l.prices && maker && has(l.prices[maker])) return l.prices[maker];
+    return has(l.price) ? l.price : '';
+  };
+  function fillLensSelect() {
+    const sel = $('lens'), cur = sel.value, maker = $('maker').value;
+    sel.innerHTML = ''; sel.add(new Option('—', ''));
+    lists.lenses.forEach(l => {
+      const pr = lensPriceFor(l, maker);
+      sel.add(new Option(l.name + (has(pr) ? ' — ' + rub(pr) : ''), l.name));
+    });
+    if (cur && !lists.lenses.some(l => l.name === cur)) sel.add(new Option(cur, cur));
+    sel.value = cur || '';
+  }
+  function applyLists() {
+    fillSelect($('purpose'), lists.purposes);
+    fillSelect($('source'), lists.sources);
+    fillSelect($('tint'), lists.tints);
+    fillSelect($('maker'), lists.makers || DEFAULT_LISTS.makers);
+    fillLensSelect();
+    renderLensGrid();
+  }
+
+  /* ---------- форма <-> объект ---------- */
+  function readForm() {
+    const o = {};
+    FIELDS.forEach(k => { const v = $(k).value.trim(); o[k] = NUMS.has(k) ? (v === '' ? '' : n(v)) : v; });
+    o.phone = normPhone(o.phone) || o.phone;
+    return o;
+  }
+  function writeForm(o) {
+    FIELDS.forEach(k => {
+      const el = $(k); let v = o[k] ?? '';
+      if (el.tagName === 'SELECT' && v !== '' && el.dataset.r) v = String(Math.round(n(v) * 100) / 100);
+      if (el.tagName === 'SELECT' && v !== '' && ![...el.options].some(op => op.value === String(v))) el.add(new Option(v, v));
+      el.value = v;
+    });
+    fillLensSelect(); $('lens').value = o.lens || '';
+  }
+  const nextNumber = () => Math.max(4269, ...orders.map(o => n(o.num))) + 1;
+
+  function startNew() {
+    surchApplied = null;
+    editingNum = null; lastFound = null; numTouched = false;
+    $('numInput').value = nextNumber();
+    writeForm({ orderDate: today(), status: 'В работе', maker: 'Корея', workPrice: 2000 });
+    $('found').hidden = true;
+    $('modeLabel').textContent = 'Новый заказ';
+    $('saveBtn').textContent = 'Сохранить и распечатать';
+    $('delBtn').hidden = true;
+    setMsg('');
+    refresh();
+  }
+  function openOrder(o) {
+    surchApplied = null;
+    editingNum = o.num; lastFound = null; numTouched = false;
+    $('numInput').value = o.num;
+    writeForm(o);
+    $('found').hidden = true;
+    $('modeLabel').textContent = 'Открыт из журнала';
+    $('saveBtn').textContent = 'Сохранить изменения и распечатать';
+    $('delBtn').hidden = !(me && me.role === 'admin');
+    setMsg('');
+    refresh();
+    F.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  }
+
+  /* ---------- квитанция ---------- */
+  function half(o, num) {
+    const t = calc(o);
+    const cell = (v, cls='') => '<td class="v ' + cls + '">' + esc(v) + '</td>';
+    const lensTxt = (o.lens || '') + (o.lens && o.maker ? '  (' + o.maker + ')' : '');
+    return `
+    <div class="half">
+      <table class="hd"><tr><td></td><td class="shop"><div><b>Тел:</b>&nbsp; ${esc(SHOP.tel)}</div><div>${esc(SHOP.addr)}</div></td></tr></table>
+      <table class="g">
+        <tr><td class="lb" style="width:22%">№ карты</td><td class="v" style="width:16%">${esc(o.card)}</td>
+            <td class="ttl" colspan="2">КВИТАНЦИЯ-ЗАКАЗ №</td><td class="v no">${esc(num)}</td></tr>
+      </table>
+      <table class="g">
+        <tr><td class="lb">дата заказа</td><td class="lb">дата получения</td><td class="lb">время получения</td></tr>
+        <tr>${cell(dmy(o.orderDate))}${cell(dmy(o.readyDate))}${cell(o.readyTime)}</tr>
+      </table>
+      <table class="g">
+        <tr><td class="lb" style="width:34%">Ф.И.О заказчика</td>${cell(o.name,'c')}</tr>
+        <tr><td class="lb">Телефон заказчика</td>${cell(o.phone,'c')}</tr>
+      </table>
+      <table class="g rxp">
+        <tr><td style="width:28%"></td><td class="lb c">Сфера</td><td class="lb c">Цилиндр</td><td class="lb c">Ось</td><td class="lb c">Add</td><td class="lb c">РЦ PD</td></tr>
+        <tr><td class="lb">Правый глаз - OD</td>${cell(diop(o.odSph),'c')}${cell(diop(o.odCyl),'c')}${cell(o.odAx,'c')}${cell(diop(o.odAdd),'c')}${cell(o.odPd,'c')}</tr>
+        <tr><td class="lb">Левый глаз - OS</td>${cell(diop(o.osSph),'c')}${cell(diop(o.osCyl),'c')}${cell(o.osAx,'c')}${cell(diop(o.osAdd),'c')}${cell(o.osPd,'c')}</tr>
+      </table>
+      <table class="g">
+        <tr><td class="lb u" style="width:34%">Назначение очков</td>${cell(o.purpose,'c')}</tr>
+        <tr><td class="lb u">Рецепт</td>${cell(o.source,'c')}</tr>
+      </table>
+      <table class="g">
+        <tr><td class="lb">Оправа</td><td class="lb">Модель</td><td class="lb" style="width:18%">Цена</td></tr>
+        <tr>${cell(o.frameBrand)}${cell(o.frameModel,'c')}${cell(rubOrBlank(o.framePrice),'r')}</tr>
+        <tr><td class="lb" colspan="2">Наименование линз</td><td class="lb">Цена</td></tr>
+        <tr><td class="v" colspan="2">${esc(lensTxt)}</td>${cell(rubOrBlank(o.lensPrice),'r')}</tr>
+      </table>
+      <table class="g">
+        <tr><td class="lb" style="width:26%">Работа мастера</td><td class="lb" style="width:17%">цена</td><td class="lb" style="width:22%">Тонировка цвет</td><td class="lb" style="width:15%">Процент</td><td class="lb">Цена</td></tr>
+        <tr>${cell(o.work)}${cell(rubOrBlank(o.workPrice),'r')}${cell(o.tint,'c')}${cell(has(o.tintPct) ? o.tintPct + '%' : '','c')}${cell(rubOrBlank(o.tintPrice),'r')}</tr>
+      </table>
+      <table class="g sums">
+        <tr><td class="lb">Сумма</td><td class="lb">Скидка</td><td class="lb">Итого</td><td class="lb">Оплачено</td><td class="lb">долг</td></tr>
+        <tr>${cell(rub(t.sum),'r y')}${cell(has(o.discount) ? rub(o.discount) : '','r')}${cell(rub(t.total),'r y')}${cell(has(o.paid) ? rub(o.paid) : '','r')}${cell(rub(t.debt),'r y')}</tr>
+      </table>
+      <table class="g foot"><tr><td class="lb">Заказ принят правильно, со<br>свойствами линз и оправы ознакомлен.</td><td class="sig"><div class="line"></div>Подпись клиента</td></tr></table>
+    </div>`;
+  }
+  const RECEIPT_CSS = `
+    .rc{display:grid;grid-template-columns:1fr 1fr;gap:34px;font-family:Calibri,Carlito,Arial,sans-serif;font-size:12.5px;color:#111;font-weight:700}
+    .rc table{width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:9px}
+    .rc td{padding:3px 5px;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .rc .hd td.shop{border:1px solid #111;width:62%;font-weight:700;line-height:1.35}
+    .rc .lb{font-weight:700;color:#111;white-space:normal;overflow:visible;line-height:1.15}
+    .rc .u{text-decoration:underline}
+    .rc .v{border:1px solid #111;background:#dbe5f1;min-height:20px;height:22px}
+    .rc .c{text-align:center}.rc .r{text-align:right}
+    .rc .y{background:#ffff00}
+    .rc .ttl{text-align:right;padding-right:10px}
+    .rc .no{text-align:center;font-size:14px;background:#fff}
+    .rc .sig{width:30%;text-align:left;vertical-align:bottom}
+    .rc .sig .line{border:1px solid #111;height:20px;margin-bottom:3px}
+    .rc .foot td.lb{white-space:normal;font-weight:700}
+    .rc .half{min-width:0}`;
+  function receiptHTML(o, num) { return '<div class="rc">' + half(o, num) + half(o, num) + '</div>'; }
+
+  function printableFile(o, num) {
+    return '<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Квитанция ' + esc(num) + '</title><style>' +
+      '@page{size:A4 landscape;margin:8mm}html,body{margin:0;background:#fff}body{padding:6mm}' + RECEIPT_CSS +
+      '@media print{body{padding:0}.rc .v{-webkit-print-color-adjust:exact;print-color-adjust:exact}}' +
+      '</style></head><body>' + receiptHTML(o, num) + '</body></html>';
+  }
+
+  function printReceipt(o, num) {
+    const old = document.getElementById('printFrame'); if (old) old.remove();
+    const f = document.createElement('iframe');
+    f.id = 'printFrame'; f.setAttribute('aria-hidden', 'true');
+    f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+    document.body.appendChild(f);
+    const d = f.contentWindow.document;
+    d.open(); d.write(printableFile(o, num)); d.close();
+    setTimeout(() => { f.contentWindow.focus(); f.contentWindow.print(); }, 250);
+  }
+
+  /* ---------- локальная копия на этом компьютере (работа без интернета) ---------- */
+  const idb = (() => {
+    let p = null;
+    const open = () => p || (p = new Promise((res, rej) => {
+      const r = indexedDB.open('eocrm', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    }));
+    const tx = (mode, fn) => open().then(db => new Promise((res, rej) => {
+      const t = db.transaction('kv', mode); const req = fn(t.objectStore('kv'));
+      t.oncomplete = () => res(req && req.result); t.onerror = () => rej(t.error);
+    }));
+    return {
+      get: k => tx('readonly', st => st.get(k)).catch(() => undefined),
+      set: (k, v) => tx('readwrite', st => st.put(v, k)).catch(() => {})
+    };
+  })();
+  let serverOrders = [];   // последняя копия с сайта
+  let outbox = [];         // сохранено здесь, ещё не отправлено на сайт
+  let lastSync = null, authProblem = false;
+  const notices = [];
+
+  function applyOutbox() {
+    let list = serverOrders.slice();
+    outbox.forEach(it => {
+      list = list.filter(x => n(x.num) !== it.prevNum && n(x.num) !== it.num);
+      list.push({ ...it.order, num: it.num, _pending: true });
+    });
+    orders = list.sort((a, b) => n(b.num) - n(a.num));
+  }
+  function upsertServer(saved, prevNum) {
+    serverOrders = serverOrders.filter(x => n(x.num) !== prevNum && n(x.num) !== n(saved.num));
+    serverOrders.push(saved);
+    serverOrders.sort((a, b) => n(b.num) - n(a.num));
+  }
+  function addNotice(t) {
+    notices.push(t);
+    $('noticeList').innerHTML = notices.map(x => '<li>' + esc(x) + '</li>').join('');
+    $('notice').hidden = false;
+  }
+  $('noticeClose').addEventListener('click', () => { notices.length = 0; $('notice').hidden = true; });
+
+  /* ---------- связь с базой (Supabase) ---------- */
+  const SB = (window.supabase && CFG && CFG.url && CFG.url.indexOf('__') !== 0)
+    ? window.supabase.createClient(CFG.url, CFG.key, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'eocrm-auth', detectSessionInUrl: true } })
+    : null;
+  let me = null;   // { id, email, role, name }
+  const looksOffline = x => navigator.onLine === false || /fetch|network|Load failed|NetworkError/i.test(String((x && (x.message || x)) || ''));
+  function wrapErr(err) {
+    const e = new Error((err && err.message) || String(err)); e.code = err && err.code;
+    if (looksOffline(err)) { e.offline = true; e.message = 'Нет связи с базой'; }
+    else if (/exists/i.test(e.message) || e.code === '23505') e.code = 'exists';
+    else if (e.code === '42501' || e.code === 'PGRST301' || /JWT|forbidden|not authenticated|permission denied/i.test(e.message)) { e.auth = true; e.message = 'Нужно войти заново'; }
+    return e;
+  }
+  async function call(p) {
+    let res;
+    try { res = await p; } catch (x) { throw wrapErr(x); }
+    if (res && res.error) throw wrapErr(res.error);
+    authProblem = false;
+    return res ? res.data : null;
+  }
+  async function haveSession() {
+    try { const r = await SB.auth.getSession(); return !!(r && r.data && r.data.session); } catch (e) { return false; }
+  }
+  const api = {
+    orders: async () => ((await call(SB.from('crm_orders').select('num,data').order('num', { ascending: false }).limit(5000))) || []).map(r => ({ ...(r.data || {}), num: r.num })),
+    save: (num, prevNum, order) => call(SB.rpc('crm_save_order', { p_num: num, p_prev: prevNum, p_order: order })),
+    del: num => call(SB.rpc('crm_delete_order', { p_num: num })),
+    lists: async () => { const d = await call(SB.from('crm_settings').select('value').eq('key', 'lists').maybeSingle()); return d && d.value; },
+    saveLists: v => call(SB.rpc('crm_save_lists', { p_value: v })),
+    staff: () => call(SB.rpc('crm_list_staff')),
+    addStaff: (email, role, name) => call(SB.rpc('crm_add_staff', { p_email: email, p_role: role, p_name: name })),
+    removeStaff: uid => call(SB.rpc('crm_remove_staff', { p_user: uid }))
+  };
+  function setStatus(t, cls) { const s = $('dbStatus'); s.textContent = t; s.className = 'status' + (cls ? ' ' + cls : ''); }
+  function updateStatus() {
+    const pend = outbox.length ? ' · не отправлено: ' + outbox.length : '';
+    if (!SB) return setStatus('База не подключена', 'err');
+    if (authProblem) { $('dbStatus').innerHTML = 'Нужно войти заново' + esc(pend) + ' — <a href="#" id="reLogin">войти</a>'; $('dbStatus').className = 'status err'; const rl = $('reLogin'); if (rl) rl.onclick = e => { e.preventDefault(); showLogin('Войдите снова — неотправленные заказы сохранены на этом компьютере.'); }; return; }
+    if (navigator.onLine === false || !lastSync) return setStatus('Нет интернета — работаю на этом компьютере' + pend, 'off');
+    setStatus('На связи · обновлено ' + lastSync.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) + pend, outbox.length ? 'off' : '');
+  }
+
+  let flushing = false;
+  async function flushOutbox() {
+    if (flushing || !outbox.length || !SB || !me) return;
+    if (!(await haveSession())) { authProblem = true; return; }
+    flushing = true;
+    try {
+      while (outbox.length) {
+        const it = outbox[0];
+        try {
+          const saved = await api.save(it.num, it.prevNum, it.order);
+          upsertServer(saved || it.order, it.prevNum);
+        } catch (e) {
+          if (e.code !== 'exists') throw e;
+          // Номер, взятый без интернета, уже занят на сайте: берём следующий свободный.
+          const list = await api.orders(); serverOrders = Array.isArray(list) ? list : serverOrders;
+          const used = serverOrders.map(o => n(o.num)).concat(outbox.map(o => n(o.num)));
+          const newNum = it.prevNum != null ? it.prevNum : Math.max(4269, ...used) + 1;
+          addNotice(it.prevNum != null
+            ? 'Заказ «' + (it.order.name || '') + '»: номер №' + it.num + ' уже занят, заказ оставлен под прежним №' + newNum + '.'
+            : 'Заказ «' + (it.order.name || '') + '» оформлен без интернета как №' + it.num + ', но этот номер уже занят — сохранён как №' + newNum + '. Исправьте номер на бумажной квитанции.');
+          outbox.forEach(x => { if (x !== it && x.prevNum === it.num) x.prevNum = newNum; });
+          if (editingNum === it.num) { editingNum = newNum; $('numInput').value = newNum; }
+          it.num = newNum; it.order = { ...it.order, num: newNum };
+          continue;
+        }
+        outbox.shift();
+        await idb.set('outbox', outbox);
+      }
+    } finally {
+      flushing = false;
+      await idb.set('outbox', outbox);
+      await idb.set('orders', serverOrders);
+    }
+  }
+
+  async function loadOrders() {
+    if (SB && me) {
+      try {
+        if (!(await haveSession())) { const e = new Error('Нужно войти заново'); e.auth = true; throw e; }
+        await flushOutbox();
+        const list = await api.orders();
+        serverOrders = (Array.isArray(list) ? list : []).sort((a, b) => n(b.num) - n(a.num));
+        await idb.set('orders', serverOrders);
+        lastSync = new Date();
+      } catch (e) {
+        if (e.auth) authProblem = true;
+        else if (!e.offline) addNotice('Сайт ответил ошибкой: ' + e.message);
+      }
+    }
+    applyOutbox();
+    renderRows();
+    if (editingNum == null) refresh();
+    updateStatus();
+  }
+  async function loadLists() {
+    try {
+      const d = await api.lists();
+      if (d && Array.isArray(d.lenses) && d.lenses.length) { lists = { ...DEFAULT_LISTS, ...d }; idb.set('lists', lists); applyLists(); refresh(); }
+    } catch (e) {}
+  }
+
+  const styleEl = document.createElement('style'); styleEl.textContent = RECEIPT_CSS; document.head.appendChild(styleEl);
+
+  function fitPaper() {
+    const wrap = $('previewWrap'), paper = $('paper');
+    const scale = Math.min(1, (wrap.clientWidth - 2) / 1060);
+    paper.style.transform = 'scale(' + scale + ')';
+    wrap.style.height = (paper.offsetHeight * scale + 8) + 'px';
+  }
+  function refresh() {
+    const o = readForm();
+    if (editingNum == null && !numTouched) $('numInput').value = nextNumber();
+    const num = $('numInput').value.trim() || '—';
+    const t = calc(o);
+    $('tSum').textContent = rub(t.sum); $('tTotal').textContent = rub(t.total); $('tDebt').textContent = rub(t.debt);
+    $('paper').innerHTML = receiptHTML(o, num);
+    showSurcharge(o);
+    fitPaper();
+  }
+  addEventListener('resize', fitPaper);
+  $('numInput').addEventListener('input', () => { numTouched = true; });
+  F.addEventListener('input', refresh);
+  F.addEventListener('change', refresh);
+
+  /* ---------- поиск клиента по телефону ---------- */
+  $('phone').addEventListener('blur', () => {
+    const p = normPhone($('phone').value);
+    if (!p) return;
+    $('phone').value = p;
+    if (editingNum != null) { refresh(); return; }
+    const prev = orders.filter(o => o.phone === p).sort((a,b) => n(b.num) - n(a.num))[0];
+    const box = $('found');
+    if (!prev) { box.hidden = true; refresh(); return; }
+    lastFound = prev;
+    if (!$('name').value) $('name').value = prev.name || '';
+    if (!$('card').value) $('card').value = prev.card || '';
+    box.innerHTML = '';
+    const t = document.createElement('span');
+    t.textContent = 'Постоянный клиент: ' + (prev.name || '') + ' · последний заказ №' + prev.num + ' от ' + dmy(prev.orderDate);
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Подставить рецепт';
+    b.addEventListener('click', () => {
+      ['odSph','odCyl','odAx','odAdd','odPd','osSph','osCyl','osAx','osAdd','osPd','purpose','source'].forEach(k => {
+        const el = $(k); let v = lastFound[k] ?? '';
+        if (el.tagName === 'SELECT' && v !== '' && el.dataset.r) v = String(Math.round(n(v) * 100) / 100);
+        el.value = v;
+      });
+      refresh();
+    });
+    box.append(t, b); box.hidden = false;
+    refresh();
+  });
+
+  function setLensPrice() {
+    const l = lists.lenses.find(x => x.name === $('lens').value);
+    const pr = lensPriceFor(l, $('maker').value);
+    if (has(pr)) $('lensPrice').value = pr;
+    refresh();
+  }
+  $('lens').addEventListener('change', setLensPrice);
+  $('maker').addEventListener('change', () => { const cur = $('lens').value; fillLensSelect(); $('lens').value = cur; setLensPrice(); });
+
+  /* надбавка по прайсу: сфера больше ±6 (кроме 1.6/1.61/1.67/1.74), цилиндр больше ±2 — по +2000 ₽ */
+  let surchApplied = null;
+  function surcharge(o) {
+    const idx = parseFloat(o.lens) || 0;
+    const thin = [1.6, 1.61, 1.67, 1.74].includes(idx);
+    const sph = !thin && [o.odSph, o.osSph].some(v => has(v) && Math.abs(n(v)) > 6);
+    const cyl = [o.odCyl, o.osCyl].some(v => has(v) && Math.abs(n(v)) > 2);
+    return { sum: (sph ? 2000 : 0) + (cyl ? 2000 : 0), why: [sph && 'сфера больше ±6', cyl && 'цилиндр больше ±2'].filter(Boolean).join(' и ') };
+  }
+  function showSurcharge(o) {
+    const box = $('surch'), x = surcharge(o);
+    const key = o.lens + '|' + o.maker + '|' + x.sum;
+    if (!o.lens || !x.sum || surchApplied === key) { box.hidden = true; return; }
+    if (!box.hidden && box.dataset.key === key) return;
+    box.dataset.key = key;
+    box.innerHTML = '';
+    const t = document.createElement('span');
+    t.textContent = 'По прайсу надбавка +' + rub(x.sum) + ': ' + x.why + '.';
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Прибавить к цене линз';
+    b.addEventListener('click', () => { $('lensPrice').value = n($('lensPrice').value) + x.sum; surchApplied = key; box.hidden = true; refresh(); });
+    box.append(t, b); box.hidden = false;
+  }
+
+  /* ---------- сохранение и печать ---------- */
+  function setMsg(t, cls) { const m = $('msg'); m.textContent = t; m.className = 'msg ' + (cls || ''); }
+  function validate(o) {
+    if (!o.name) return 'Впишите Ф.И.О. заказчика.';
+    if (!o.phone) return 'Впишите телефон.';
+    for (const e of ['od','os']) if (n(o[e+'Cyl']) !== 0 && !has(o[e+'Ax'])) return (e === 'od' ? 'OD' : 'OS') + ': при цилиндре укажите ось (0–180).';
+    return '';
+  }
+  async function save(andPrint) {
+    const o = readForm();
+    const err = validate(o);
+    if (err) { setMsg(err, 'err'); return; }
+    const num = Math.trunc(n($('numInput').value));
+    if (!(num > 0)) { setMsg('Впишите номер квитанции.', 'err'); $('numInput').focus(); return; }
+    if (num !== editingNum && orders.some(x => n(x.num) === num)) {
+      setMsg('Квитанция №' + num + ' уже есть в журнале. Впишите другой номер или откройте её из журнала.', 'err'); $('numInput').focus(); return;
+    }
+    const prevNum = editingNum;
+    const t = calc(o);
+    const rec = { ...o, num, sum: t.sum, total: t.total, debt: t.debt, updatedAt: new Date().toISOString() };
+    if (prevNum == null) rec.createdAt = rec.updatedAt;
+    else { const old = orders.find(x => n(x.num) === prevNum); if (old && old.createdAt) rec.createdAt = old.createdAt; }
+    $('saveBtn').disabled = $('saveOnlyBtn').disabled = true;
+    try {
+      // 1) сразу сохраняем на этом компьютере
+      outbox.push({ num, prevNum, order: rec });
+      await idb.set('outbox', outbox);
+      applyOutbox(); renderRows();
+      editingNum = num; numTouched = false; $('numInput').value = num;
+      $('modeLabel').textContent = 'Сохранён';
+      $('saveBtn').textContent = 'Сохранить изменения и распечатать';
+      refresh();
+      if (andPrint) printReceipt(rec, num);
+      // 2) отправляем на сайт (если нет интернета — отправится позже сам)
+      try { await flushOutbox(); lastSync = new Date(); }
+      catch (e) { if (e.auth) authProblem = true; }
+      applyOutbox(); renderRows(); updateStatus();
+      const shownNum = editingNum;
+      if (!outbox.length) setMsg('Заказ №' + shownNum + ' сохранён на сайте.', 'ok');
+      else setMsg('Заказ №' + shownNum + ' сохранён на этом компьютере. На сайт отправится сам, когда появится интернет.', 'ok');
+    } catch (e) {
+      setMsg('Не сохранено: ' + (e && e.message || 'ошибка'), 'err');
+    } finally {
+      $('saveBtn').disabled = $('saveOnlyBtn').disabled = false;
+    }
+  }
+  F.addEventListener('submit', e => { e.preventDefault(); save(true); });
+  $('saveOnlyBtn').addEventListener('click', () => save(false));
+  $('newBtn').addEventListener('click', startNew);
+
+  /* ---------- журнал ---------- */
+  const pillCls = s => s === 'Выдан' ? 'done' : s === 'Готов' ? 'ready' : 'work';
+  function renderRows() {
+    const q = $('q').value.trim().toLowerCase();
+    const qd = q.replace(/\D/g, '');
+    const list = orders.filter(o => {
+      if (filter === 'open' && o.status === 'Выдан') return false;
+      if (filter === 'debt' && !(n(o.debt) > 0)) return false;
+      if (!q) return true;
+      return String(o.num) === q || (o.name || '').toLowerCase().includes(q) || (qd.length >= 3 && (o.phone || '').replace(/\D/g, '').includes(qd));
+    });
+    const tb = $('rows');
+    if (!list.length) {
+      tb.innerHTML = '<tr><td colspan="8" class="empty">' + (orders.length ? 'Ничего не найдено.' : 'Заказы появятся здесь после первого сохранения.') + '</td></tr>';
+      return;
+    }
+    tb.innerHTML = list.map(o => '<tr data-num="' + esc(o.num) + '" tabindex="0">' +
+      '<td>' + esc(o.num) + (o._pending ? ' <span class="pill ready" title="Ещё не отправлен на сайт">не отправлен</span>' : '') + '</td><td>' + esc(dmy(o.orderDate)) + '</td><td>' + esc(o.name) + '</td><td>' + esc(o.phone) + '</td>' +
+      '<td>' + esc((o.lens || '').slice(0, 34) + (o.lens && o.maker ? ' · ' + o.maker : '')) + '</td><td class="num">' + rub(o.total) + '</td>' +
+      '<td class="num">' + (n(o.debt) > 0 ? rub(o.debt) : '—') + '</td>' +
+      '<td><span class="pill ' + pillCls(o.status) + '">' + esc(o.status || 'В работе') + '</span></td></tr>').join('');
+  }
+  $('rows').addEventListener('click', e => { const tr = e.target.closest('tr[data-num]'); if (tr) { const o = orders.find(x => String(x.num) === tr.dataset.num); if (o) openOrder(o); } });
+  $('rows').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.click(); });
+  $('q').addEventListener('input', renderRows);
+  document.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => {
+    filter = b.dataset.flt;
+    document.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    renderRows();
+  }));
+
+  /* ---------- справочник линз ---------- */
+  let lensDraft = [];
+  const MK = () => lists.makers || DEFAULT_LISTS.makers;
+  function renderLensGrid() {
+    lensDraft = lists.lenses.map(l => ({ name: l.name, prices: { ...(l.prices || {}) } }));
+    const g = $('lensGrid');
+    g.innerHTML = '<span class="h">Линза</span>' + MK().map(m => '<span class="h">' + esc(m) + '</span>').join('') + '<span class="h c3"></span>';
+    lensDraft.forEach((l, i) => {
+      const nm = document.createElement('input'); nm.value = l.name; nm.id = 'ln' + i; nm.setAttribute('aria-label', 'Название линзы');
+      nm.addEventListener('input', () => lensDraft[i].name = nm.value);
+      g.append(nm);
+      MK().forEach((m, j) => {
+        const pr = document.createElement('input'); pr.type = 'number'; pr.min = 0; pr.step = 100; pr.id = 'lp' + i + '_' + j;
+        pr.value = l.prices[m] ?? ''; pr.setAttribute('aria-label', 'Цена ' + m);
+        pr.addEventListener('input', () => lensDraft[i].prices[m] = pr.value === '' ? '' : n(pr.value));
+        g.append(pr);
+      });
+      const del = document.createElement('button'); del.type = 'button'; del.textContent = 'Убрать'; del.className = 'c3';
+      del.addEventListener('click', () => { lensDraft.splice(i, 1); lists = { ...lists, lenses: lensDraft }; renderLensGrid(); });
+      g.append(del);
+    });
+  }
+  $('addLens').addEventListener('click', () => { lensDraft.push({ name: '', prices: {} }); lists = { ...lists, lenses: lensDraft }; renderLensGrid(); $('ln' + (lensDraft.length - 1)).focus(); });
+  $('saveLenses').addEventListener('click', async () => {
+    const clean = lensDraft.filter(l => l.name.trim()).map(l => ({ name: l.name.trim(), prices: l.prices }));
+    lists = { ...lists, lenses: clean };
+    applyLists();
+    const m = $('lensMsg');
+    try {
+      await api.saveLists(lists);
+      idb.set('lists', lists);
+      m.textContent = 'Справочник сохранён.'; m.className = 'msg ok';
+    } catch (e) { m.textContent = 'Не получилось сохранить: ' + (e.message || e.code); m.className = 'msg err'; }
+  });
+
+  /* ---------- запуск ---------- */
+  applyLists();
+  startNew();
+
+  /* ---------- удаление заказа (только администратор) ---------- */
+  $('delBtn').addEventListener('click', async () => {
+    const num = editingNum;
+    if (num == null || !me || me.role !== 'admin') return;
+    if (outbox.some(x => x.num === num || x.prevNum === num)) { setMsg('Этот заказ ещё не отправлен в базу. Удалить можно после отправки.', 'err'); return; }
+    if (!confirm('Удалить заказ №' + num + ' навсегда? Отменить это будет нельзя.')) return;
+    try {
+      await api.del(num);
+      serverOrders = serverOrders.filter(x => n(x.num) !== num);
+      await idb.set('orders', serverOrders);
+      applyOutbox(); renderRows(); startNew();
+      setMsg('Заказ №' + num + ' удалён.', 'ok');
+    } catch (e) { setMsg('Не удалено: ' + (e.offline ? 'нет интернета' : e.message), 'err'); }
+  });
+
+  /* ---------- сотрудники (только администратор) ---------- */
+  async function loadStaff() {
+    const tb = $('staffRows');
+    try {
+      const rows = (await api.staff()) || [];
+      tb.innerHTML = rows.length ? '' : '<tr><td colspan="4" class="empty">Пока никого.</td></tr>';
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td>' + esc(r.email) + '</td><td>' + esc(r.name) + '</td><td>' + (r.role === 'admin' ? 'Администратор' : 'Сотрудник') + '</td><td></td>';
+        if (r.user_id !== me.id) {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'danger'; b.textContent = 'Закрыть доступ';
+          b.addEventListener('click', async () => {
+            if (!confirm('Закрыть доступ к CRM для ' + r.email + '?')) return;
+            try { await api.removeStaff(r.user_id); loadStaff(); } catch (e) { $('stMsg').textContent = 'Не получилось: ' + e.message; $('stMsg').className = 'msg err'; }
+          });
+          tr.lastChild.appendChild(b);
+        }
+        tb.appendChild(tr);
+      });
+    } catch (e) { tb.innerHTML = '<tr><td colspan="4" class="empty">' + esc(e.offline ? 'Нужен интернет' : e.message) + '</td></tr>'; }
+  }
+  $('stAdd').addEventListener('click', async () => {
+    const m = $('stMsg'), email = $('stEmail').value.trim();
+    if (!email) { m.textContent = 'Впишите почту сотрудника.'; m.className = 'msg err'; return; }
+    try {
+      await api.addStaff(email, $('stRole').value, $('stName').value.trim());
+      m.textContent = 'Доступ выдан: ' + email; m.className = 'msg ok';
+      $('stEmail').value = ''; $('stName').value = ''; loadStaff();
+    } catch (e) {
+      m.className = 'msg err';
+      m.textContent = /not_found/.test(e.message) ? 'Такой почты нет в Supabase. Сначала создайте пользователя: Authentication → Users → Add user.' : 'Не получилось: ' + e.message;
+    }
+  });
+
+  /* ---------- вход ---------- */
+  let recovering = false;
+  function lgMsg(t, cls) { const m = $('lgMsg'); m.textContent = t || ''; m.className = 'msg ' + (cls || ''); }
+  function showLogin(hint) {
+    $('login').hidden = false;
+    $('loginHint').textContent = hint || 'Войдите своей почтой и паролем.';
+    lgMsg('');
+    setTimeout(() => (recovering ? $('lgPass') : $('lgEmail')).focus(), 50);
+  }
+  async function loadMe(session) {
+    const u = session && session.user;
+    if (!u) return null;
+    let cached = null; try { cached = JSON.parse(localStorage.getItem('eocrm-me') || 'null'); } catch (e) {}
+    try {
+      const r = await call(SB.from('crm_staff').select('role,name').eq('user_id', u.id).maybeSingle());
+      const m = { id: u.id, email: u.email, role: r ? r.role : null, name: (r && r.name) || u.email };
+      try { localStorage.setItem('eocrm-me', JSON.stringify(m)); } catch (e) {}
+      return m;
+    } catch (e) {
+      if (e.offline && cached && cached.id === u.id) return cached;
+      throw e;
+    }
+  }
+  $('loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = $('lgEmail').value.trim(), pass = $('lgPass').value;
+    $('lgBtn').disabled = true;
+    try {
+      if (recovering) {
+        if (pass.length < 8) { lgMsg('Пароль — не короче 8 символов.', 'err'); return; }
+        await call(SB.auth.updateUser({ password: pass }));
+        recovering = false; $('lgBtn').textContent = 'Войти'; $('lgForgot').hidden = false;
+      } else {
+        if (!pass) { lgMsg('Впишите пароль.', 'err'); return; }
+        const r = await SB.auth.signInWithPassword({ email, password: pass });
+        if (r.error) { lgMsg(looksOffline(r.error) ? 'Нет интернета — вход невозможен.' : 'Неверная почта или пароль.', 'err'); return; }
+      }
+      const s = (await SB.auth.getSession()).data.session;
+      me = await loadMe(s);
+      if (!me || !me.role) { lgMsg('Этой учётной записи не выдан доступ к CRM. Попросите администратора.', 'err'); await SB.auth.signOut(); return; }
+      $('lgPass').value = '';
+      $('login').hidden = true;
+      startApp();
+    } catch (x) { lgMsg('Не получилось: ' + x.message, 'err'); }
+    finally { $('lgBtn').disabled = false; }
+  });
+  $('lgForgot').addEventListener('click', async () => {
+    const email = $('lgEmail').value.trim();
+    if (!email) { lgMsg('Впишите почту, и мы пришлём ссылку для нового пароля.', 'err'); $('lgEmail').focus(); return; }
+    try {
+      await call(SB.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }));
+      lgMsg('Письмо со ссылкой отправлено на ' + email + '. Откройте его на этом компьютере.', 'ok');
+    } catch (x) { lgMsg('Не получилось: ' + x.message, 'err'); }
+  });
+
+  /* ---------- запуск ---------- */
+  let started = false;
+  function startApp() {
+    $('whoName').textContent = me.name || me.email;
+    $('lensPanel').hidden = me.role !== 'admin';
+    $('staffPanel').hidden = me.role !== 'admin';
+    if (editingNum != null) $('delBtn').hidden = me.role !== 'admin';
+    if (me.role === 'admin') loadStaff();
+    loadLists();
+    loadOrders();
+    if (started) return;
+    started = true;
+    setInterval(() => { if (!document.hidden) loadOrders(); }, 30000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) loadOrders(); });
+    addEventListener('online', () => loadOrders());
+    addEventListener('offline', updateStatus);
+  }
+  $('logoutLink').href = '#';
+  $('logoutLink').addEventListener('click', async e => {
+    e.preventDefault();
+    if (outbox.length && !confirm('На этом компьютере ' + outbox.length + ' заказ(ов) ещё не отправлены. Они сохранятся и отправятся после следующего входа. Выйти?')) return;
+    try { await SB.auth.signOut(); } catch (x) {}
+    try { localStorage.removeItem('eocrm-me'); } catch (x) {}
+    me = null;
+    showLogin();
+  });
+
+  (async () => {
+    const [o, l, ob] = await Promise.all([idb.get('orders'), idb.get('lists'), idb.get('outbox')]);
+    serverOrders = Array.isArray(o) ? o : [];
+    outbox = Array.isArray(ob) ? ob : [];
+    if (l && Array.isArray(l.lenses) && l.lenses.length) { lists = { ...DEFAULT_LISTS, ...l }; applyLists(); }
+    applyOutbox(); renderRows(); refresh(); updateStatus();
+
+    // установка как программы и работа без интернета
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+    let deferred = null;
+    addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; $('installBtn').hidden = false; });
+    $('installBtn').addEventListener('click', async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice.catch(() => {}); deferred = null; $('installBtn').hidden = true; });
+
+    if (!SB) { showLogin('База ещё не подключена.'); return; }
+    SB.auth.onAuthStateChange(ev => {
+      if (ev === 'PASSWORD_RECOVERY') {
+        recovering = true;
+        $('lgBtn').textContent = 'Сохранить новый пароль'; $('lgForgot').hidden = true;
+        showLogin('Придумайте новый пароль (не короче 8 символов).');
+      }
+    });
+    let session = null;
+    try { session = (await SB.auth.getSession()).data.session; } catch (e) {}
+    let cached = null; try { cached = JSON.parse(localStorage.getItem('eocrm-me') || 'null'); } catch (e) {}
+    if (!session) {
+      // без интернета пускаем того, кто уже входил на этом компьютере
+      if (navigator.onLine === false && cached && cached.role) { me = cached; startApp(); return; }
+      return showLogin();
+    }
+    try { me = await loadMe(session); } catch (e) { me = null; }
+    if (recovering) return;
+    if (!me) return showLogin();
+    if (!me.role) return showLogin('Этой учётной записи не выдан доступ к CRM. Попросите администратора.');
+    startApp();
+  })();
+})();
+</script>
+</body>
+</html>
